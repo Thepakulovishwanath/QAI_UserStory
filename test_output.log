@@ -1,0 +1,126 @@
+Test MCP server running on stdio...
+  + Exception Group Traceback (most recent call last):
+  |   File "/home/voltus/MyWork/April_Work/QmentisAI/test_mcp.py", line 12, in <module>
+  |     mcp.run(transport='stdio')
+  |   File "/home/voltus/.local/lib/python3.10/site-packages/mcp/server/fastmcp/server.py", line 159, in run
+  |     anyio.run(self.run_stdio_async)
+  |   File "/home/voltus/.local/lib/python3.10/site-packages/anyio/_core/_eventloop.py", line 74, in run
+  |     return async_backend.run(func, args, {}, backend_options)
+  |   File "/home/voltus/.local/lib/python3.10/site-packages/anyio/_backends/_asyncio.py", line 2310, in run
+  |     return runner.run(wrapper())
+  |   File "/home/voltus/.local/lib/python3.10/site-packages/anyio/_backends/_asyncio.py", line 217, in run
+  |     return self._loop.run_until_complete(task)
+  |   File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+  |     return future.result()
+  |   File "/home/voltus/.local/lib/python3.10/site-packages/anyio/_backends/_asyncio.py", line 2298, in wrapper
+  |     return await func(*args)
+  |   File "/home/voltus/.local/lib/python3.10/site-packages/mcp/server/fastmcp/server.py", line 460, in run_stdio_async
+  |     async with stdio_server() as (read_stream, write_stream):
+  |   File "/usr/lib/python3.10/contextlib.py", line 217, in __aexit__
+  |     await self.gen.athrow(typ, value, traceback)
+  |   File "/home/voltus/.local/lib/python3.10/site-packages/mcp/server/stdio.py", line 83, in stdio_server
+  |     async with anyio.create_task_group() as tg:
+  |   File "/home/voltus/.local/lib/python3.10/site-packages/anyio/_backends/_asyncio.py", line 772, in __aexit__
+  |     raise BaseExceptionGroup(
+  | exceptiongroup.ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "/home/voltus/.local/lib/python3.10/site-packages/mcp/server/stdio.py", line 86, in stdio_server
+    |     yield read_stream, write_stream
+    |   File "/home/voltus/.local/lib/python3.10/site-packages/mcp/server/fastmcp/server.py", line 461, in run_stdio_async
+    |     await self._mcp_server.run(
+    |   File "/home/voltus/.local/lib/python3.10/site-packages/mcp/server/lowlevel/server.py", line 483, in run
+    |     async with AsyncExitStack() as stack:
+    |   File "/usr/lib/python3.10/contextlib.py", line 714, in __aexit__
+    |     raise exc_details[1]
+    |   File "/usr/lib/python3.10/contextlib.py", line 217, in __aexit__
+    |     await self.gen.athrow(typ, value, traceback)
+    |   File "/home/voltus/.local/lib/python3.10/site-packages/mcp/server/lowlevel/server.py", line 121, in lifespan
+    |     yield {}
+    |   File "/usr/lib/python3.10/contextlib.py", line 697, in __aexit__
+    |     cb_suppress = await cb(*exc_details)
+    |   File "/home/voltus/.local/lib/python3.10/site-packages/mcp/shared/session.py", line 210, in __aexit__
+    |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+    |   File "/home/voltus/.local/lib/python3.10/site-packages/anyio/_backends/_asyncio.py", line 772, in __aexit__
+    |     raise BaseExceptionGroup(
+    | exceptiongroup.ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "/home/voltus/.local/lib/python3.10/site-packages/mcp/shared/session.py", line 307, in _receive_loop
+      |     validated_request = self._receive_request_type.model_validate(
+      |   File "/home/voltus/.local/lib/python3.10/site-packages/pydantic/main.py", line 703, in model_validate
+      |     return cls.__pydantic_validator__.validate_python(
+      | pydantic_core._pydantic_core.ValidationError: 24 validation errors for ClientRequest
+      | PingRequest.method
+      |   Input should be 'ping' [type=literal_error, input_value='echo', input_type=str]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/literal_error
+      | InitializeRequest.method
+      |   Input should be 'initialize' [type=literal_error, input_value='echo', input_type=str]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/literal_error
+      | InitializeRequest.params.protocolVersion
+      |   Field required [type=missing, input_value={'message': 'Hello'}, input_type=dict]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/missing
+      | InitializeRequest.params.capabilities
+      |   Field required [type=missing, input_value={'message': 'Hello'}, input_type=dict]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/missing
+      | InitializeRequest.params.clientInfo
+      |   Field required [type=missing, input_value={'message': 'Hello'}, input_type=dict]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/missing
+      | CompleteRequest.method
+      |   Input should be 'completion/complete' [type=literal_error, input_value='echo', input_type=str]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/literal_error
+      | CompleteRequest.params.ref
+      |   Field required [type=missing, input_value={'message': 'Hello'}, input_type=dict]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/missing
+      | CompleteRequest.params.argument
+      |   Field required [type=missing, input_value={'message': 'Hello'}, input_type=dict]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/missing
+      | SetLevelRequest.method
+      |   Input should be 'logging/setLevel' [type=literal_error, input_value='echo', input_type=str]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/literal_error
+      | SetLevelRequest.params.level
+      |   Field required [type=missing, input_value={'message': 'Hello'}, input_type=dict]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/missing
+      | GetPromptRequest.method
+      |   Input should be 'prompts/get' [type=literal_error, input_value='echo', input_type=str]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/literal_error
+      | GetPromptRequest.params.name
+      |   Field required [type=missing, input_value={'message': 'Hello'}, input_type=dict]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/missing
+      | ListPromptsRequest.method
+      |   Input should be 'prompts/list' [type=literal_error, input_value='echo', input_type=str]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/literal_error
+      | ListResourcesRequest.method
+      |   Input should be 'resources/list' [type=literal_error, input_value='echo', input_type=str]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/literal_error
+      | ListResourceTemplatesRequest.method
+      |   Input should be 'resources/templates/list' [type=literal_error, input_value='echo', input_type=str]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/literal_error
+      | ReadResourceRequest.method
+      |   Input should be 'resources/read' [type=literal_error, input_value='echo', input_type=str]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/literal_error
+      | ReadResourceRequest.params.uri
+      |   Field required [type=missing, input_value={'message': 'Hello'}, input_type=dict]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/missing
+      | SubscribeRequest.method
+      |   Input should be 'resources/subscribe' [type=literal_error, input_value='echo', input_type=str]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/literal_error
+      | SubscribeRequest.params.uri
+      |   Field required [type=missing, input_value={'message': 'Hello'}, input_type=dict]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/missing
+      | UnsubscribeRequest.method
+      |   Input should be 'resources/unsubscribe' [type=literal_error, input_value='echo', input_type=str]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/literal_error
+      | UnsubscribeRequest.params.uri
+      |   Field required [type=missing, input_value={'message': 'Hello'}, input_type=dict]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/missing
+      | CallToolRequest.method
+      |   Input should be 'tools/call' [type=literal_error, input_value='echo', input_type=str]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/literal_error
+      | CallToolRequest.params.name
+      |   Field required [type=missing, input_value={'message': 'Hello'}, input_type=dict]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/missing
+      | ListToolsRequest.method
+      |   Input should be 'tools/list' [type=literal_error, input_value='echo', input_type=str]
+      |     For further information visit https://errors.pydantic.dev/2.11/v/literal_error
+      +------------------------------------
