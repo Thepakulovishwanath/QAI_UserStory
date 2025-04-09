@@ -938,7 +938,7 @@
 #     """Refine the user story using provided INVEST criteria and generate an improved version."""
 #     try:
 #         if not chat_model:
-#             chat_model = ChatGroq(model=GROQ_MODEL, api_key=GROQ_API_KEY, temperature=0.9)
+#             chat_model = ChatGroq(model=GROQ_MODEL, api_key=GROQ_API_KEY, temperature=0.5)
         
 #         analysis_prompt = create_analysis_prompt(user_story, invest_criteria, aspects_to_enhance, additional_context, input_score)
 #         response = chat_model.invoke(analysis_prompt)
@@ -2033,20 +2033,45 @@ Follow this structured approach:
     ]
     return messages
 
+def extract_json_from_text(text: str) -> str:
+    """
+    Extract JSON from text that might contain additional content before or after the JSON.
+    Args:
+        text: Text that contains JSON
+    Returns:
+        Extracted JSON string
+    """
+    json_pattern = r'(\{(?:[^{}]|(?:\{(?:[^{}]|(?:\{(?:[^{}]|(?:\{[^{}]*\}))*\}))*\}))*\})'
+    match = re.search(json_pattern, text)
+    if match:
+        return match.group(1)
+    return text
+
 def analyze_user_story(user_story: Dict[str, Any], invest_criteria: Dict[str, Dict[str, Any]], aspects_to_enhance: str = "", additional_context: str = "", input_score: int = 0, chat_model=None) -> Dict[str, Any]:
     """Refine the user story using provided INVEST criteria and generate an improved version."""
     try:
         if not chat_model:
             chat_model = ChatTogether(model=ToGetherAI_MODEL, api_key=Together_AI_API_KEY, temperature=0.9)
         
+        logger.info(f"Using model: {ToGetherAI_MODEL} with API key: {Together_AI_API_KEY[:5]}... (masked)")
         analysis_prompt = create_analysis_prompt(user_story, invest_criteria, aspects_to_enhance, additional_context, input_score)
         response = chat_model.invoke(analysis_prompt)
-        content = response.content.strip()
+        content = response.content.strip() if response.content else ""
+        logger.info(f"Raw model response: '{content}'")
         
-        json_content = sanitize_json_string(content)
-        result = json.loads(json_content)
+        if not content:
+            raise ValueError("Model returned empty response")
         
-        # Validate and restructure the result
+        # Extract JSON from the response
+        json_content = extract_json_from_text(content)
+        logger.info(f"Extracted JSON content: '{json_content}'")
+        
+        # Sanitize and parse the extracted JSON
+        sanitized_json = sanitize_json_string(json_content)
+        logger.info(f"Sanitized JSON content: '{sanitized_json}'")
+        result = json.loads(sanitized_json)
+        
+        # Validate and restructure the result (rest of your existing code remains unchanged)
         required_sections = ["OriginalUserStory", "ImprovedUserStory", "INVESTAnalysis", "Overall"]
         for section in required_sections:
             if section not in result:
@@ -2064,24 +2089,20 @@ def analyze_user_story(user_story: Dict[str, Any], invest_criteria: Dict[str, Di
                 elif section == "Overall":
                     result[section] = {"InputScore": input_score, "ImprovedScore": 0, "Summary": "", "RefinementSummary": []}
         
-        # Populate original scores and explanations from invest_criteria
         criteria = ["Independent", "Negotiable", "Valuable", "Estimable", "Small", "Testable"]
         for criterion in criteria:
             if criterion in invest_criteria:
                 result["INVESTAnalysis"][criterion]["OriginalScore"] = invest_criteria[criterion]["score"]
                 result["INVESTAnalysis"][criterion]["Explanation"] = invest_criteria[criterion]["explanation"]
         
-        # Validate scores
         for criterion in criteria:
             result["INVESTAnalysis"][criterion]["OriginalScore"] = max(1, min(5, int(result["INVESTAnalysis"][criterion].get("OriginalScore", 0))))
             result["INVESTAnalysis"][criterion]["ImprovedScore"] = max(1, min(5, int(result["INVESTAnalysis"][criterion].get("ImprovedScore", 0))))
         
-        # Calculate and validate overall scores
         calculated_improved_score = sum(result["INVESTAnalysis"][c]["ImprovedScore"] for c in criteria)
         result["Overall"]["InputScore"] = max(0, min(30, int(input_score)))
         result["Overall"]["ImprovedScore"] = min(30, calculated_improved_score)
         
-        # Update RefinementSummary
         if "RefinementSummary" in result["Overall"] and isinstance(result["Overall"]["RefinementSummary"], str):
             result["Overall"]["RefinementSummary"] = [point.strip() for point in result["Overall"]["RefinementSummary"].split('*') if point.strip()]
         result["Overall"]["RefinementSummary"] = [re.sub(r"INVEST Score improved from \d+/30 to \d+/30", f"INVEST Score improved from {input_score}/30 to {calculated_improved_score}/30", point) for point in result["Overall"]["RefinementSummary"]]
@@ -2089,6 +2110,7 @@ def analyze_user_story(user_story: Dict[str, Any], invest_criteria: Dict[str, Di
         return result
         
     except Exception as e:
+        logger.error(f"Analysis error: {str(e)}")
         return {
             "error": f"Analysis failed: {str(e)}",
             "OriginalUserStory": user_story,
@@ -2145,6 +2167,9 @@ async def http_invest_analyze(request: Request):
         return JSONResponse(content={"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True})
 
 if __name__ == "__main__":
+    print("UserStory INVEST Analyzer MCP server running on stdio...")
+    mcp.run()
     import uvicorn
     print("Starting FastAPI server for UserStory INVEST Analyzer...")
+    
     uvicorn.run(app, host="127.0.0.1", port=8000)
